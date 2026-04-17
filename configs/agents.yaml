@@ -1,0 +1,152 @@
+agents:
+  diva:
+    display_name: "DIVA"
+    description: >-
+      The face of the system. Handles greetings, general conversation,
+      session summaries, remembering user context, irrelevant questions,
+      and anything that does not need a data source agent. DIVA introduces
+      itself, explains capabilities, and responds with personality.
+    scope:
+      - "hello"
+      - "hi"
+      - "greeting"
+      - "help"
+      - "what can you do"
+      - "who are you"
+      - "remember"
+      - "summary"
+      - "thank"
+      - "bye"
+      - "poem"
+      - "joke"
+      - "general"
+      - "irrelevant"
+      - "capital"
+      - "weather"
+    mcp_server: "none"
+    prompt_template: "diva_agent.jinja2"
+    temperature: 0.7
+    max_tool_calls: 0
+
+  neo4j:
+    display_name: "Knowledge Graph Agent"
+    description: >-
+      Org-level knowledge: domains, applications, platforms, data lineage
+      (raw → sanitized → curated → ADS), migrations, table catalog
+    scope:
+      - "org structure"
+      - "data lineage"
+      - "application"
+      - "platform"
+      - "migration"
+      - "domain"
+      - "table"
+      - "ADS"
+      - "curated"
+      - "sanitized"
+    mcp_server: "neo4j"
+    prompt_template: "neo4j_agent.jinja2"
+    temperature: 0
+    max_tool_calls: 5
+
+  mongodb:
+    display_name: "MongoDB Agent"
+    description: "Operational data, application logs, document queries"
+    scope:
+      - "operational data"
+      - "logs"
+      - "document"
+      - "collection"
+    mcp_server: "mongodb"
+    prompt_template: "mongodb_agent.jinja2"
+    temperature: 0
+    max_tool_calls: 5
+
+  oracle:
+    display_name: "Oracle Agent"
+    description: "Structured relational data, reports, analytics"
+    scope:
+      - "relational data"
+      - "reports"
+      - "SQL"
+      - "Oracle table"
+    mcp_server: "oracle"
+    prompt_template: "oracle_agent.jinja2"
+    temperature: 0
+    max_tool_calls: 5
+
+  dataplex:
+    display_name: "Dataplex Agent"
+    description: "Data catalog, quality scores, governance metadata"
+    scope:
+      - "data catalog"
+      - "data quality"
+      - "governance"
+      - "BigQuery"
+    mcp_server: "dataplex"
+    prompt_template: "dataplex_agent.jinja2"
+    temperature: 0
+    max_tool_calls: 3
+
+  github:
+    display_name: "GitHub Agent"
+    description: "Repositories, PRs, issues, code, CI/CD"
+    scope:
+      - "code"
+      - "pull request"
+      - "repository"
+      - "commit"
+      - "release"
+    mcp_server: "github"
+    prompt_template: "github_agent.jinja2"
+    temperature: 0
+    max_tool_calls: 5
+
+  confluence:
+    display_name: "Confluence Agent"
+    description: "Documentation, runbooks, design docs, team wikis"
+    scope:
+      - "documentation"
+      - "runbook"
+      - "design doc"
+      - "wiki"
+    mcp_server: "confluence"
+    prompt_template: "confluence_agent.jinja2"
+    temperature: 0
+    max_tool_calls: 3
+
+  jira:
+    display_name: "Jira Agent"
+    description: "Tickets, sprints, epics, project status, assignments"
+    scope:
+      - "ticket"
+      - "sprint"
+      - "bug"
+      - "epic"
+      - "assigned"
+      - "status"
+    mcp_server: "jira"
+    prompt_template: "jira_agent.jinja2"
+    temperature: 0
+    max_tool_calls: 3
+
+  autosys:
+    display_name: "Autosys Agent"
+    description: "Batch job schedules, statuses, dependencies, failure history"
+    scope:
+      - "batch job"
+      - "job schedule"
+      - "job failure"
+      - "job dependency"
+    mcp_server: "autosys"
+    prompt_template: "autosys_agent.jinja2"
+    temperature: 0
+    max_tool_calls: 3
+
+router:
+  temperature: 0
+  max_tokens: 256
+
+execution:
+  parallel_timeout_seconds: 30
+  max_agents_per_query: 4

@@ -1,0 +1,32 @@
+# Context management configuration
+sliding_window:
+  max_turns: 8
+
+summarizer:
+  trigger_after_turns: 6
+  max_summary_tokens: 300
+
+entity_scratchpad:
+  max_entities: 50
+  entity_ttl_turns: 12
+
+drift_detection:
+  enabled: true
+  min_turns_before_check: 2
+
+token_budget:
+  total_context_window: 128000
+  reserved_for_output: 4096
+  allocations:
+    system_prompt: 2000
+    running_summary: 1000
+    entity_scratchpad: 500
+    kg_context: 3000
+    conversation_history: 6000
+    agent_system_prompt: 1500
+  priority_order:
+    - system_prompt
+    - entity_scratchpad
+    - running_summary
+    - conversation_history
+    - kg_context

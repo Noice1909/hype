@@ -1,0 +1,38 @@
+[
+  {
+    "id": "total-applications",
+    "label": "How many applications are there?",
+    "category": "Applications",
+    "cypher": "MATCH (a:Application) RETURN count(a) AS total"
+  },
+  {
+    "id": "list-applications",
+    "label": "List all applications",
+    "category": "Applications",
+    "cypher": "MATCH (a:Application) RETURN a.name AS application ORDER BY a.name"
+  },
+  {
+    "id": "apps-by-domain",
+    "label": "How many applications per domain?",
+    "category": "Applications",
+    "cypher": "MATCH (d:Domain)-[:CONTAINS]->(a:Application) RETURN d.name AS domain, count(a) AS apps ORDER BY apps DESC"
+  },
+  {
+    "id": "top-dependencies",
+    "label": "Which applications have the most dependencies?",
+    "category": "Dependencies",
+    "cypher": "MATCH (a:Application)-[:DEPENDS_ON]->(d) RETURN a.name AS application, count(d) AS dependencies ORDER BY dependencies DESC LIMIT 10"
+  },
+  {
+    "id": "app-dependencies-detail",
+    "label": "Show all application dependencies",
+    "category": "Dependencies",
+    "cypher": "MATCH (a:Application)-[:DEPENDS_ON]->(b) RETURN a.name AS application, b.name AS depends_on ORDER BY a.name, b.name"
+  },
+  {
+    "id": "domains-list",
+    "label": "What domains exist?",
+    "category": "Domains",
+    "cypher": "MATCH (d:Domain) RETURN d.name AS domain ORDER BY d.name"
+  }
+]

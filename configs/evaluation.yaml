@@ -1,0 +1,14 @@
+# DeepEval evaluation configuration
+metrics:
+  faithfulness:
+    threshold: 0.7
+    enabled: true
+  answer_relevancy:
+    threshold: 0.7
+    enabled: true
+  hallucination:
+    threshold: 0.5
+    enabled: true
+
+# Run evaluation in background (never blocks response)
+async_evaluation: true

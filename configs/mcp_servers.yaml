@@ -1,0 +1,45 @@
+# MCP server connection config — each can use stdio, SSE, or HTTP transport
+servers:
+  neo4j:
+    transport: "http"
+    url: "http://127.0.0.1:3006/mcp"
+
+  mongodb:
+    transport: "http"
+    url: "http://127.0.0.1:8080/mcp"
+    headers:
+      X-MongoDB-Connection-String: "REDACTED_MONGODB_CONNECTION_STRING"
+      X-MongoDB-Database: "TEST"
+
+  github:
+    transport: "stdio"
+    command: "npx"
+    args: ["-y", "@modelcontextprotocol/server-github"]
+    env:
+      GITHUB_TOKEN: "${GITHUB_TOKEN}"
+
+  jira:
+    transport: "sse"
+    url: "${JIRA_MCP_URL}"
+
+  confluence:
+    transport: "sse"
+    url: "${CONFLUENCE_MCP_URL}"
+
+  oracle:
+    transport: "stdio"
+    command: "python"
+    args: ["-m", "oracle_mcp_server"]
+    env:
+      ORACLE_DSN: "${ORACLE_DSN}"
+
+  dataplex:
+    transport: "http"
+    url: "${DATAPLEX_MCP_URL}"
+
+  autosys:
+    transport: "stdio"
+    command: "python"
+    args: ["-m", "autosys_mcp_server"]
+    env:
+      AUTOSYS_API_URL: "${AUTOSYS_API_URL}"
