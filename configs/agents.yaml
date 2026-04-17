@@ -31,36 +31,85 @@ agents:
   neo4j:
     display_name: "Knowledge Graph Agent"
     description: >-
-      Org-level knowledge: domains, applications, platforms, data lineage
-      (raw → sanitized → curated → ADS), migrations, table catalog
+      Static organizational metadata from the enterprise knowledge graph.
+      Answers "what exists" and "how things relate" questions: which
+      applications belong to which domain, team ownership, platform
+      inventory, server topology, data lineage layers (raw → sanitized →
+      curated → ADS), table catalog, migration programs and waves.
+      Does NOT know operational status of pipeline runs, build results,
+      or deployment progress — for that use the DDA agent.
     scope:
       - "org structure"
       - "data lineage"
+      - "application catalog"
       - "application"
-      - "platform"
-      - "migration"
+      - "platform inventory"
+      - "team ownership"
+      - "business unit"
       - "domain"
-      - "table"
+      - "raw table"
+      - "curated table"
+      - "sanitized table"
       - "ADS"
-      - "curated"
-      - "sanitized"
+      - "migration program"
+      - "migration wave"
+      - "server topology"
+      - "network topology"
     mcp_server: "neo4j"
     prompt_template: "neo4j_agent.jinja2"
     temperature: 0
     max_tool_calls: 5
 
-  mongodb:
-    display_name: "MongoDB Agent"
-    description: "Operational data, application logs, document queries"
+  dda-agent:
+    display_name: "DDA Agent — Data Delivery Automation"
+    description: >-
+      Operational status and artifacts from the Data Delivery Automation
+      (DDA/DMA) internal tool. Queries the consumer_datapipeline_uat
+      MongoDB cluster for: onboarding request status, generated artifacts
+      (SQL/DDL/JIL/runbooks), Jenkins build results, UrbanCode deployment
+      status, workflow progress per Jira ticket, ingestion source-to-
+      target mappings, and questionnaire responses. Route when the user
+      explicitly mentions DDA, DMA, pipeline onboarding, DMA- / STATIC- /
+      METADATA- collections, Jenkins builds, UCD/UrbanCode deploys,
+      artifact generation, JIL generation, Jira intake validation, or
+      questionnaire. Does NOT know the org-wide application catalog or
+      data lineage graph — for that use the Neo4j agent. Does NOT manage
+      Autosys job schedules — for that use the Autosys agent.
     scope:
-      - "operational data"
-      - "logs"
-      - "document"
-      - "collection"
-    mcp_server: "mongodb"
-    prompt_template: "mongodb_agent.jinja2"
+      - "DDA"
+      - "DMA"
+      - "data delivery automation"
+      - "data movement automation"
+      - "pipeline onboarding"
+      - "onboarding request"
+      - "ingestion catalog"
+      - "source to target"
+      - "artifact generation"
+      - "artifact catalog"
+      - "generated artifact"
+      - "generated sql"
+      - "generated ddl"
+      - "generated jil"
+      - "generated runbook"
+      - "jenkins build"
+      - "build result"
+      - "build status"
+      - "urbancode"
+      - "ucd deployment"
+      - "workflow status"
+      - "jira intake"
+      - "jira story intake"
+      - "questionnaire"
+      - "requirement catalog"
+      - "metadata collection"
+      - "connection json"
+      - "feed artifact"
+      - "sor definition"
+      - "pattern time saving"
+    mcp_server: "dda-mongodb"
+    prompt_template: "dda_agent.jinja2"
     temperature: 0
-    max_tool_calls: 5
+    max_tool_calls: 20
 
   oracle:
     display_name: "Oracle Agent"

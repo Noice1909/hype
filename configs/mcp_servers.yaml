@@ -1,15 +1,23 @@
 # MCP server connection config — each can use stdio, SSE, or HTTP transport
+#
+# NEVER hardcode credentials or connection strings in this file. Use ${VAR}
+# placeholders — they're resolved from Settings (pydantic-settings) at runtime,
+# which in turn reads from .env or container env vars.
 servers:
   neo4j:
     transport: "http"
-    url: "http://127.0.0.1:3006/mcp"
+    url: "${NEO4J_MCP_URL}"
 
-  mongodb:
+  # DDA MongoDB — dedicated cluster for Data Delivery Automation.
+  # The MongoDB MCP server is the same image but handles different
+  # clusters via per-request headers. Every agent that needs a different
+  # MongoDB target gets its own entry here with its own credentials.
+  dda-mongodb:
     transport: "http"
-    url: "http://127.0.0.1:8080/mcp"
+    url: "${DDA_MONGODB_MCP_URL}"
     headers:
-      X-MongoDB-Connection-String: "REDACTED_MONGODB_CONNECTION_STRING"
-      X-MongoDB-Database: "TEST"
+      X-MongoDB-Connection-String: "${DDA_MONGODB_CONNECTION_STRING}"
+      X-MongoDB-Database: "${DDA_MONGODB_DATABASE}"
 
   github:
     transport: "stdio"

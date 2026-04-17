@@ -38,7 +38,7 @@ class Settings(BaseSettings):
     diva_auth_enabled: bool = Field(default=False)
     diva_cors_origins: str = Field(default="*", description="Comma-separated CORS origins")
     diva_mcp_servers: str = Field(
-        default="neo4j,mongodb",
+        default="neo4j,dda-mongodb",
         description="Comma-separated list of MCP servers to start",
     )
     diva_host: str = Field(default="0.0.0.0")
@@ -61,7 +61,22 @@ class Settings(BaseSettings):
     mongodb_uri: str = Field(default="mongodb://localhost:27017")
     diva_db_name: str = Field(default="diva")
 
-    # ── Neo4j (for MCP server env vars) ─────────────────────────────────────
+    # ── DDA MongoDB (collection name — read via MongoDB MCP) ─────
+    dda_mongodb_mcp_url: str = Field(
+        default="http://127.0.0.1:8080/mcp",
+        description="MCP server endpoint the dda-agent talks to",
+    )
+    dda_mongodb_connection_string: str = Field(
+        default="",
+        description="Atlas/self-hosted connection string for the DDA cluster",
+    )
+    dda_mongodb_database: str = Field(
+        default="collection name",
+        description="Default database name for the DDA cluster",
+    )
+
+    # ── Neo4j MCP endpoint + credentials (for MCP server env vars) ──────────
+    neo4j_mcp_url: str = Field(default="http://127.0.0.1:3006/mcp")
     neo4j_uri: str = Field(default="bolt://localhost:7687")
     neo4j_user: str = Field(default="neo4j")
     neo4j_password: str = Field(default="")
@@ -74,6 +89,7 @@ class Settings(BaseSettings):
     oracle_dsn: str = Field(default="")
     oracle_user: str = Field(default="")
     oracle_password: str = Field(default="")
+    dataplex_mcp_url: str = Field(default="")
     dataplex_project: str = Field(default="")
     dataplex_location: str = Field(default="")
     google_application_credentials: str = Field(default="")
@@ -114,21 +130,30 @@ class Settings(BaseSettings):
         }
 
     def mcp_server_env(self) -> dict[str, str]:
-        """Env vars passed to MCP server subprocesses via the YAML
-        config's ``${VAR}`` placeholders. Mirrors any external system
-        credential the MCP servers need."""
+        """Values resolved when the MCP yaml config contains ``${VAR}``
+        placeholders. Keep every secret/URL here — NEVER hardcode them in
+        mcp_servers.yaml."""
         return {
+            # Neo4j MCP server + DB credentials
+            "NEO4J_MCP_URL": self.neo4j_mcp_url,
             "NEO4J_URI": self.neo4j_uri,
             "NEO4J_USER": self.neo4j_user,
             "NEO4J_PASSWORD": self.neo4j_password,
             "NEO4J_DATABASE": self.neo4j_database,
+            # DIVA's own MongoDB (session storage, not the DDA cluster)
             "MONGODB_URI": self.mongodb_uri,
+            # DDA cluster — MongoDB MCP server connection + headers
+            "DDA_MONGODB_MCP_URL": self.dda_mongodb_mcp_url,
+            "DDA_MONGODB_CONNECTION_STRING": self.dda_mongodb_connection_string,
+            "DDA_MONGODB_DATABASE": self.dda_mongodb_database,
+            # Platform integrations
             "GITHUB_TOKEN": self.github_token,
             "JIRA_MCP_URL": self.jira_mcp_url,
             "CONFLUENCE_MCP_URL": self.confluence_mcp_url,
             "ORACLE_DSN": self.oracle_dsn,
             "ORACLE_USER": self.oracle_user,
             "ORACLE_PASSWORD": self.oracle_password,
+            "DATAPLEX_MCP_URL": self.dataplex_mcp_url,
             "DATAPLEX_PROJECT": self.dataplex_project,
             "DATAPLEX_LOCATION": self.dataplex_location,
             "GOOGLE_APPLICATION_CREDENTIALS": self.google_application_credentials,
