@@ -1350,8 +1350,8 @@ def main() -> None:
     parser.add_argument(
         "--transport",
         choices=["stdio", "sse", "http"],
-        default="sse",
-        help="Transport type (default: sse)",
+        default="http",
+        help="Transport type (default: http)",
     )
     parser.add_argument("--port", type=int, default=3006, help="Port (default: 3006)")
     parser.add_argument("--host", default="127.0.0.1", help="Host (default: 127.0.0.1)")

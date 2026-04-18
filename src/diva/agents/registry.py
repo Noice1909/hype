@@ -19,12 +19,57 @@ class AgentRegistry:
         self._config = config
 
     @classmethod
-    def from_yaml(cls, path: str | Path) -> AgentRegistry:
+    def from_yaml(
+        cls,
+        path: str | Path,
+        enabled_override: set[str] | None = None,
+    ) -> AgentRegistry:
+        """Load agents.yaml and apply the enable/disable resolution rule.
+
+        Resolution:
+          - ``enabled_override`` is None  →  YAML's ``enabled`` flags win.
+          - ``enabled_override`` is a set →  exhaustive allowlist; YAML's
+            ``enabled`` field is ignored. Unknown ids are warned and dropped.
+
+        The set of agent ids actually registered is what every downstream
+        component sees (router prompt, synthesizer suggestion validation,
+        agent_executor lookup).
+        """
         with open(path) as f:
             raw = yaml.safe_load(f)
         config = AgentRegistryConfig(**raw)
-        logger.info("Loaded %d agents from registry", len(config.agents))
+        all_ids = set(config.agents.keys())
+
+        if enabled_override is None:
+            kept = {aid for aid, cfg in config.agents.items() if cfg.enabled}
+            source = "agents.yaml `enabled` flags"
+        else:
+            unknown = enabled_override - all_ids
+            if unknown:
+                logger.warning(
+                    "DIVA_ENABLED_AGENTS contains unknown agent ids %s — "
+                    "ignored. Known ids: %s", sorted(unknown), sorted(all_ids),
+                )
+            kept = enabled_override & all_ids
+            source = "DIVA_ENABLED_AGENTS env var"
+
+        config.agents = {aid: config.agents[aid] for aid in kept}
+        logger.info(
+            "Agent registry: %d enabled (source: %s) — %s",
+            len(config.agents), source, sorted(config.agents.keys()),
+        )
         return cls(config)
+
+    def mcp_servers_needed(self) -> list[str]:
+        """Distinct MCP server ids referenced by enabled agents.
+
+        ``mcp_server: "none"`` (the diva persona) is excluded since it has
+        no MCP backend.
+        """
+        return sorted({
+            cfg.mcp_server for cfg in self._config.agents.values()
+            if cfg.mcp_server and cfg.mcp_server != "none"
+        })
 
     @property
     def agents(self) -> dict[str, AgentConfig]:

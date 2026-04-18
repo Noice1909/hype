@@ -14,17 +14,23 @@ Usage::
 from __future__ import annotations
 
 from functools import lru_cache
+from pathlib import Path
 from typing import Literal
 
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+# Repo root resolved from this file's location: src/diva/core/config.py → repo/
+# Pinning the .env path here makes Settings load identically regardless of the
+# Python process's cwd (start.ps1, uvicorn, pytest, ad-hoc scripts).
+_REPO_ROOT = Path(__file__).resolve().parents[3]
 
 
 class Settings(BaseSettings):
     """Single source of truth for all runtime configuration."""
 
     model_config = SettingsConfigDict(
-        env_file=".env",
+        env_file=_REPO_ROOT / ".env",
         env_file_encoding="utf-8",
         case_sensitive=False,
         extra="ignore",
@@ -38,8 +44,20 @@ class Settings(BaseSettings):
     diva_auth_enabled: bool = Field(default=False)
     diva_cors_origins: str = Field(default="*", description="Comma-separated CORS origins")
     diva_mcp_servers: str = Field(
-        default="neo4j,dda-mongodb",
-        description="Comma-separated list of MCP servers to start",
+        default="",
+        description=(
+            "DEPRECATED — derived automatically from enabled agents. "
+            "Set only as an explicit override when you need an MCP server "
+            "running without an associated agent."
+        ),
+    )
+    diva_enabled_agents: str = Field(
+        default="",
+        description=(
+            "Comma-separated agent ids to enable. Empty = follow agents.yaml "
+            "`enabled` flags. Set value overrides YAML completely (exhaustive "
+            "allowlist). Unknown ids are warned and ignored."
+        ),
     )
     diva_host: str = Field(default="0.0.0.0")
     diva_port: int = Field(default=8000)
@@ -75,12 +93,10 @@ class Settings(BaseSettings):
         description="Default database name for the DDA cluster",
     )
 
-    # ── Neo4j MCP endpoint + credentials (for MCP server env vars) ──────────
+    # ── Neo4j MCP endpoint ──────────────────────────────────────────────────
+    # The MCP server is single-tenant and owns its own NEO4J_URI/USER/PASSWORD/
+    # DATABASE in its own environment — DIVA only needs the URL to talk to it.
     neo4j_mcp_url: str = Field(default="http://127.0.0.1:3006/mcp")
-    neo4j_uri: str = Field(default="bolt://localhost:7687")
-    neo4j_user: str = Field(default="neo4j")
-    neo4j_password: str = Field(default="")
-    neo4j_database: str = Field(default="neo4j")
 
     # ── External MCP server credentials ─────────────────────────────────────
     github_token: str = Field(default="")
@@ -116,6 +132,16 @@ class Settings(BaseSettings):
     def mcp_servers_list(self) -> list[str]:
         return [s.strip() for s in self.diva_mcp_servers.split(",") if s.strip()]
 
+    @property
+    def enabled_agents_override(self) -> set[str] | None:
+        """Returns the set of agent ids requested via env, or None when the
+        env var is unset/blank (meaning: defer to agents.yaml `enabled` flags).
+        """
+        raw = self.diva_enabled_agents.strip()
+        if not raw:
+            return None
+        return {s.strip() for s in raw.split(",") if s.strip()}
+
     def deepeval_env(self) -> dict[str, str]:
         """All DeepEval/telemetry env vars — exported so downstream code
         can apply them via ``os.environ.update`` once at startup."""
@@ -134,12 +160,8 @@ class Settings(BaseSettings):
         placeholders. Keep every secret/URL here — NEVER hardcode them in
         mcp_servers.yaml."""
         return {
-            # Neo4j MCP server + DB credentials
+            # Neo4j MCP — URL only; the MCP server owns its DB credentials
             "NEO4J_MCP_URL": self.neo4j_mcp_url,
-            "NEO4J_URI": self.neo4j_uri,
-            "NEO4J_USER": self.neo4j_user,
-            "NEO4J_PASSWORD": self.neo4j_password,
-            "NEO4J_DATABASE": self.neo4j_database,
             # DIVA's own MongoDB (session storage, not the DDA cluster)
             "MONGODB_URI": self.mongodb_uri,
             # DDA cluster — MongoDB MCP server connection + headers

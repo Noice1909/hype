@@ -49,18 +49,25 @@ async def lifespan(app: FastAPI):  # noqa: ARG001 — required by FastAPI lifesp
     # 1. MongoDB
     await init_mongo()
 
-    # 2. Agent registry
+    # 2. Agent registry — env var (when set) overrides YAML `enabled` flags
     registry = AgentRegistry.from_yaml(
         os.path.join(settings.diva_config_dir, "agents.yaml"),
+        enabled_override=settings.enabled_agents_override,
     )
 
-    # 3. MCP client manager
+    # 3. MCP client manager — derive servers from enabled agents.
+    # DIVA_MCP_SERVERS env (now deprecated) can still force-add servers
+    # without an associated agent (rare; kept for back-compat).
     mcp_config = os.path.join(settings.diva_config_dir, "mcp_servers.yaml")
     mcp_manager = MCPClientManager(mcp_config)
+    servers_to_start = sorted(
+        set(registry.mcp_servers_needed()) | set(settings.mcp_servers_list)
+    )
+    logger.info("MCP servers to start: %s", servers_to_start)
 
     # Start configured MCP servers — failures are non-fatal (graceful degradation)
     try:
-        await mcp_manager.startup(server_ids=settings.mcp_servers_list)
+        await mcp_manager.startup(server_ids=servers_to_start)
     except Exception:
         logger.warning("MCP startup had errors — some agents may be unavailable")
 

@@ -60,16 +60,23 @@ async def evaluate_response_async(payload: dict) -> None:
         )
         from deepeval.test_case import LLMTestCase
 
+        from diva.evaluation.diva_judge import build_judge
+
         test_case = LLMTestCase(
             input=payload["user_message"],
             actual_output=payload["final_response"],
             retrieval_context=retrieval_context,
+            # HallucinationMetric uses `context` not `retrieval_context`
+            context=retrieval_context,
         )
 
+        # Single judge instance reused across all 3 metrics — one model load,
+        # consistent scoring. Works for both Ollama (dev) and Tachyon (prod).
+        judge = build_judge()
         metrics = [
-            FaithfulnessMetric(threshold=0.7),
-            AnswerRelevancyMetric(threshold=0.7),
-            HallucinationMetric(threshold=0.5),
+            FaithfulnessMetric(threshold=0.7, model=judge, async_mode=False),
+            AnswerRelevancyMetric(threshold=0.7, model=judge, async_mode=False),
+            HallucinationMetric(threshold=0.5, model=judge, async_mode=False),
         ]
 
         results = {}

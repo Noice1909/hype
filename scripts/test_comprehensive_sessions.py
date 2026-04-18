@@ -67,13 +67,14 @@ _DEEPEVAL_MODEL = None
 
 
 def _get_deepeval_model():
+    """Use DivaJudge — wraps whichever LLM provider DIVA is configured with
+    (Ollama in dev, Tachyon in prod). DEEPEVAL_MODEL env var pins a specific
+    model id; otherwise falls back to settings.deepeval_model.
+    """
     global _DEEPEVAL_MODEL
     if _DEEPEVAL_MODEL is None:
-        from deepeval.models.llms.ollama_model import OllamaModel
-        _DEEPEVAL_MODEL = OllamaModel(
-            model=DEEPEVAL_MODEL,
-            base_url=os.getenv("OLLAMA_BASE_URL", "http://localhost:11434"),
-        )
+        from diva.evaluation.diva_judge import build_judge
+        _DEEPEVAL_MODEL = build_judge(model_override=DEEPEVAL_MODEL or None)
     return _DEEPEVAL_MODEL
 
 

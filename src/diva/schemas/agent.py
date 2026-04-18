@@ -13,6 +13,7 @@ class AgentConfig(BaseModel):
     prompt_template: str
     temperature: float = 0
     max_tool_calls: int = 5
+    enabled: bool = True
 
 
 class RouterConfig(BaseModel):
