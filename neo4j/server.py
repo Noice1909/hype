@@ -30,13 +30,17 @@ import logging
 import os
 import re
 import time
-from typing import Annotated, Any
-
 from contextlib import asynccontextmanager
-from typing import AsyncIterator
+from pathlib import Path
+from typing import Annotated, Any, AsyncIterator
 
+from dotenv import load_dotenv
 from pydantic import Field
 from fastmcp import FastMCP  # type: ignore[import-untyped]
+
+# Load .env from the repo root (neo4j/server.py → repo/) so NEO4J_URI / USER /
+# PASSWORD / DATABASE get picked up regardless of where this script is launched.
+load_dotenv(Path(__file__).resolve().parents[1] / ".env")
 
 logger = logging.getLogger(__name__)
 
