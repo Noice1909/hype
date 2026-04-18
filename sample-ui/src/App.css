@@ -6,6 +6,203 @@
   overflow: hidden;
 }
 
+/* Body row: sidebar + chat column */
+.app-body {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+  min-height: 0;
+}
+
+.app-chat {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-width: 0;
+}
+
+/* ── Catalog Sidebar ─────────────────────────────────────────────────── */
+.catalog-sidebar {
+  width: 280px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--background-alt, var(--background));
+  border-right: 1px solid var(--border);
+  overflow: hidden;
+}
+
+.catalog-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+  color: var(--foreground);
+  font-weight: 600;
+  font-size: 0.9rem;
+  flex-shrink: 0;
+}
+
+.catalog-title {
+  letter-spacing: 0.01em;
+}
+
+.catalog-search {
+  position: relative;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.catalog-search-icon {
+  position: absolute;
+  left: 22px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--muted, #888);
+  pointer-events: none;
+}
+
+.catalog-search-input {
+  width: 100%;
+  padding: 7px 10px 7px 30px;
+  font-size: 0.85rem;
+  background: var(--input-bg, var(--background));
+  color: var(--foreground);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md, 6px);
+  outline: none;
+  transition:
+    border-color var(--dur-fast) var(--ease-out),
+    background-color var(--dur-fast) var(--ease-out);
+}
+
+.catalog-search-input:focus {
+  border-color: var(--accent, #6366f1);
+}
+
+.catalog-items {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px 6px;
+}
+
+.catalog-empty {
+  padding: 24px 16px;
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--muted, #888);
+}
+
+.catalog-category {
+  margin-bottom: 4px;
+  /* Subtle entrance when the sidebar mounts or search filters */
+  animation: fadeIn var(--dur-base) var(--ease-out);
+}
+
+.catalog-category-header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  background: transparent;
+  border: none;
+  color: var(--muted, #888);
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  text-align: left;
+  border-radius: var(--radius-md, 6px);
+  transition:
+    color var(--dur-fast) var(--ease-out),
+    background-color var(--dur-fast) var(--ease-out);
+}
+
+.catalog-category-header:hover {
+  background: var(--hover, rgba(127, 127, 127, 0.08));
+  color: var(--foreground);
+}
+/* Chevron rotation on category toggle — origin-aware (transform-origin-aware) */
+.catalog-category-header svg {
+  transition: transform var(--dur-fast) var(--ease-out);
+  transform-origin: center;
+}
+
+.catalog-category-count {
+  margin-left: auto;
+  font-size: 0.7rem;
+  font-weight: 500;
+  background: var(--hover, rgba(127, 127, 127, 0.12));
+  padding: 1px 6px;
+  border-radius: 10px;
+  color: var(--muted, #888);
+}
+
+.catalog-category-items {
+  list-style: none;
+  padding: 2px 0 6px 0;
+  margin: 0;
+}
+
+.catalog-category-items li {
+  margin: 0;
+}
+
+.catalog-item-button {
+  width: 100%;
+  padding: 7px 10px 7px 28px;
+  background: transparent;
+  border: none;
+  color: var(--foreground);
+  font-size: 0.85rem;
+  line-height: 1.35;
+  text-align: left;
+  cursor: pointer;
+  border-radius: var(--radius-md, 6px);
+  /* Custom curve + transform-only props; asymmetric press/release */
+  transition:
+    background-color var(--dur-fast) var(--ease-out),
+    color var(--dur-fast) var(--ease-out),
+    transform var(--dur-instant) var(--ease-snap);
+  white-space: normal;
+  will-change: transform;
+}
+
+.catalog-item-button:hover:not(:disabled) {
+  background: var(--accent-soft, rgba(99, 102, 241, 0.1));
+  color: var(--accent, #6366f1);
+}
+/* transform-scale-097: instant tactile feedback on click */
+.catalog-item-button:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.catalog-item-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.catalog-footer {
+  padding: 8px 16px;
+  border-top: 1px solid var(--border);
+  font-size: 0.72rem;
+  color: var(--muted, #888);
+  flex-shrink: 0;
+}
+
+/* Responsive: hide sidebar on narrow screens */
+@media (max-width: 900px) {
+  .catalog-sidebar {
+    display: none;
+  }
+}
+
+
 .app-header {
   display: flex;
   align-items: center;
@@ -61,12 +258,22 @@
   background: var(--card);
   color: var(--muted-foreground);
   cursor: pointer;
-  transition: all 0.15s ease-out;
+  /* Only animate transform + opacity + color; custom curve */
+  transition:
+    color var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out),
+    background-color var(--dur-fast) var(--ease-out),
+    transform var(--dur-instant) var(--ease-snap);
 }
 .theme-toggle:hover,
 .clear-btn:hover {
   color: var(--foreground);
   border-color: var(--muted-foreground);
+}
+/* transform-scale-097: subtle physical press feedback */
+.theme-toggle:active,
+.clear-btn:active {
+  transform: scale(0.97);
 }
 
 /* ── Chat Container ────────────────────────────────────────────────── */
@@ -125,7 +332,8 @@
   display: flex;
   gap: 12px;
   padding: 16px 0;
-  animation: fadeIn 0.2s ease-out;
+  /* Custom curve feels 2-3x more polished than built-in ease-out */
+  animation: slideUp var(--dur-base) var(--ease-out);
 }
 .message + .message {
   border-top: 1px solid var(--border);
@@ -517,12 +725,28 @@
   font-size: 0.84rem;
   text-align: left;
   cursor: pointer;
-  transition: all 0.15s ease-out;
+  /* Only transform + color properties — no layout thrash */
+  transition:
+    color var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out),
+    background-color var(--dur-fast) var(--ease-out),
+    transform var(--dur-instant) var(--ease-snap);
   line-height: 1.4;
+  /* Staggered entrance — first chip 0ms, each +40ms */
+  animation: slideUp var(--dur-base) var(--ease-out) backwards;
 }
+.suggestion-list .suggestion-chip:nth-child(1) { animation-delay: 0ms; }
+.suggestion-list .suggestion-chip:nth-child(2) { animation-delay: 40ms; }
+.suggestion-list .suggestion-chip:nth-child(3) { animation-delay: 80ms; }
+.suggestion-list .suggestion-chip:nth-child(4) { animation-delay: 120ms; }
+.suggestion-list .suggestion-chip:nth-child(5) { animation-delay: 160ms; }
+
 .suggestion-chip:hover {
   border-color: var(--accent);
   background: var(--muted);
+}
+.suggestion-chip:active {
+  transform: scale(0.98);
 }
 .suggestion-chip-icon {
   flex-shrink: 0;
@@ -544,12 +768,94 @@
   flex-shrink: 0;
   color: var(--muted-foreground);
   opacity: 0;
-  transition: opacity 0.15s, transform 0.15s;
+  transition:
+    opacity var(--dur-fast) var(--ease-out),
+    transform var(--dur-fast) var(--ease-out);
 }
 .suggestion-chip:hover .suggestion-chip-arrow {
   opacity: 1;
   transform: translateX(2px);
 }
+
+/* ── Suggestion agent badge ─────────────────────────────────────────── */
+/* Small coloured pill showing which agent will answer this follow-up. */
+.suggestion-chip-badge {
+  flex-shrink: 0;
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  padding: 2px 7px;
+  border-radius: 10px;
+  background: var(--muted);
+  color: var(--muted-foreground);
+  border: 1px solid var(--border);
+  line-height: 1.3;
+  text-transform: uppercase;
+  transition: background-color var(--dur-fast) var(--ease-out);
+}
+
+/* Agent-specific accent tints — WCAG AA-compliant text colour.
+   Light theme: darker shade (~600/700 on Tailwind scale).
+   Dark theme: lighter shade (~300/400) injected via [data-theme="dark"]. */
+
+.suggestion-chip-badge.agent-neo4j {                /* indigo */
+  background: rgba(99, 102, 241, 0.14);
+  color: #4338ca;                                    /* indigo-700 */
+  border-color: rgba(99, 102, 241, 0.35);
+}
+.suggestion-chip-badge.agent-dda-agent,
+.suggestion-chip-badge.agent-dda {                  /* green */
+  background: rgba(34, 197, 94, 0.14);
+  color: #15803d;                                    /* green-700 */
+  border-color: rgba(34, 197, 94, 0.35);
+}
+.suggestion-chip-badge.agent-jira {                 /* blue */
+  background: rgba(59, 130, 246, 0.14);
+  color: #1d4ed8;                                    /* blue-700 */
+  border-color: rgba(59, 130, 246, 0.35);
+}
+.suggestion-chip-badge.agent-github {               /* neutral */
+  background: rgba(120, 120, 120, 0.16);
+  color: var(--foreground);
+  border-color: rgba(120, 120, 120, 0.35);
+}
+.suggestion-chip-badge.agent-confluence {           /* sky */
+  background: rgba(14, 165, 233, 0.14);
+  color: #0369a1;                                    /* sky-700 */
+  border-color: rgba(14, 165, 233, 0.35);
+}
+.suggestion-chip-badge.agent-oracle {               /* red */
+  background: rgba(239, 68, 68, 0.14);
+  color: #b91c1c;                                    /* red-700 */
+  border-color: rgba(239, 68, 68, 0.35);
+}
+.suggestion-chip-badge.agent-dataplex {             /* amber */
+  background: rgba(245, 158, 11, 0.18);
+  color: #b45309;                                    /* amber-700 */
+  border-color: rgba(245, 158, 11, 0.4);
+}
+.suggestion-chip-badge.agent-autosys {              /* purple */
+  background: rgba(168, 85, 247, 0.14);
+  color: #7e22ce;                                    /* purple-700 */
+  border-color: rgba(168, 85, 247, 0.35);
+}
+.suggestion-chip-badge.agent-diva {                 /* pink */
+  background: rgba(236, 72, 153, 0.14);
+  color: #be185d;                                    /* pink-700 */
+  border-color: rgba(236, 72, 153, 0.35);
+}
+
+/* Dark theme: lighten the text colours (300/400 scale) for contrast on
+   the tinted backgrounds against a dark canvas. */
+[data-theme="dark"] .suggestion-chip-badge.agent-neo4j      { color: #a5b4fc; }
+[data-theme="dark"] .suggestion-chip-badge.agent-dda-agent,
+[data-theme="dark"] .suggestion-chip-badge.agent-dda        { color: #86efac; }
+[data-theme="dark"] .suggestion-chip-badge.agent-jira       { color: #93c5fd; }
+[data-theme="dark"] .suggestion-chip-badge.agent-confluence { color: #7dd3fc; }
+[data-theme="dark"] .suggestion-chip-badge.agent-oracle     { color: #fca5a5; }
+[data-theme="dark"] .suggestion-chip-badge.agent-dataplex   { color: #fcd34d; }
+[data-theme="dark"] .suggestion-chip-badge.agent-autosys    { color: #d8b4fe; }
+[data-theme="dark"] .suggestion-chip-badge.agent-diva       { color: #f9a8d4; }
 
 /* ── Input Area ────────────────────────────────────────────────────── */
 .input-area {
@@ -633,8 +939,17 @@
   border: none;
   border-radius: var(--radius-sm);
   cursor: pointer;
-  transition: all 0.15s;
+  /* Custom curve + separate timing for transform (faster than color) */
+  transition:
+    background-color var(--dur-fast) var(--ease-out),
+    opacity var(--dur-fast) var(--ease-out),
+    transform var(--dur-instant) var(--ease-snap);
   flex-shrink: 0;
+  will-change: transform;
+}
+.input-btn:active:not(:disabled) {
+  /* transform-scale-097: physical press feedback */
+  transform: scale(0.94);
 }
 .send-btn {
   background: var(--accent);
@@ -671,13 +986,20 @@
   align-items: center;
   justify-content: center;
   box-shadow: var(--shadow-md);
-  transition: all 0.15s;
+  transition:
+    color var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out),
+    transform var(--dur-instant) var(--ease-snap);
   z-index: 5;
-  animation: slideUp 0.2s ease-out;
+  animation: slideUp var(--dur-base) var(--ease-out);
+  will-change: transform;
 }
 .scroll-to-bottom:hover {
   color: var(--foreground);
   border-color: var(--muted-foreground);
+}
+.scroll-to-bottom:active {
+  transform: scale(0.94);
 }
 
 /* ── Global Error ──────────────────────────────────────────────────── */
@@ -702,10 +1024,17 @@
   cursor: pointer;
   font-family: inherit;
   font-variant-numeric: tabular-nums;
-  transition: all 0.15s ease-out;
+  transition:
+    background-color var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out),
+    transform var(--dur-instant) var(--ease-snap);
+  will-change: transform;
 }
 .eval-badge:hover {
   background: var(--card);
+}
+.eval-badge:active {
+  transform: scale(0.96);
 }
 .eval-badge--loading {
   color: var(--muted-foreground);

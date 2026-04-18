@@ -1,38 +1,86 @@
 [
   {
-    "id": "total-applications",
-    "label": "How many applications are there?",
-    "category": "Applications",
-    "cypher": "MATCH (a:Application) RETURN count(a) AS total"
+    "id": "list-domains",
+    "label": "List all domains",
+    "category": "Organization",
+    "cypher": "MATCH (d:Domain) RETURN d.name AS domain, d.description AS description ORDER BY d.name"
   },
   {
-    "id": "list-applications",
-    "label": "List all applications",
-    "category": "Applications",
-    "cypher": "MATCH (a:Application) RETURN a.name AS application ORDER BY a.name"
-  },
-  {
-    "id": "apps-by-domain",
+    "id": "apps-per-domain",
     "label": "How many applications per domain?",
+    "category": "Organization",
+    "cypher": "MATCH (d:Domain)-[:CONTAINS]->(a:Application) RETURN d.name AS domain, count(a) AS applications ORDER BY applications DESC"
+  },
+  {
+    "id": "business-units",
+    "label": "List all business units",
+    "category": "Organization",
+    "cypher": "MATCH (bu:BusinessUnit) RETURN bu.name AS business_unit, bu.description AS description ORDER BY bu.name"
+  },
+  {
+    "id": "teams-and-leads",
+    "label": "Show all teams with their leads",
+    "category": "Teams",
+    "cypher": "MATCH (t:Team) OPTIONAL MATCH (p:Person)-[:LEADS]->(t) RETURN t.name AS team, t.lead AS lead_name, t.headcount AS headcount ORDER BY t.name"
+  },
+  {
+    "id": "team-by-business-unit",
+    "label": "Which teams belong to which business unit?",
+    "category": "Teams",
+    "cypher": "MATCH (t:Team)-[:BELONGS_TO]->(bu:BusinessUnit) RETURN bu.name AS business_unit, collect(t.name) AS teams ORDER BY bu.name"
+  },
+  {
+    "id": "total-applications",
+    "label": "How many applications in total?",
     "category": "Applications",
-    "cypher": "MATCH (d:Domain)-[:CONTAINS]->(a:Application) RETURN d.name AS domain, count(a) AS apps ORDER BY apps DESC"
+    "cypher": "MATCH (a:Application) RETURN count(a) AS total_applications"
+  },
+  {
+    "id": "apps-by-vendor",
+    "label": "Applications grouped by vendor",
+    "category": "Applications",
+    "cypher": "MATCH (a:Application) WHERE a.vendor IS NOT NULL RETURN a.vendor AS vendor, collect(a.name) AS applications ORDER BY vendor"
   },
   {
     "id": "top-dependencies",
     "label": "Which applications have the most dependencies?",
-    "category": "Dependencies",
-    "cypher": "MATCH (a:Application)-[:DEPENDS_ON]->(d) RETURN a.name AS application, count(d) AS dependencies ORDER BY dependencies DESC LIMIT 10"
+    "category": "Applications",
+    "cypher": "MATCH (a:Application)-[:DEPENDS_ON]->(dep) RETURN a.name AS application, count(dep) AS dependency_count ORDER BY dependency_count DESC LIMIT 10"
   },
   {
-    "id": "app-dependencies-detail",
-    "label": "Show all application dependencies",
-    "category": "Dependencies",
-    "cypher": "MATCH (a:Application)-[:DEPENDS_ON]->(b) RETURN a.name AS application, b.name AS depends_on ORDER BY a.name, b.name"
+    "id": "platforms-and-vendors",
+    "label": "List all platforms with their vendors",
+    "category": "Infrastructure",
+    "cypher": "MATCH (p:Platform) RETURN p.name AS platform, p.vendor AS vendor, p.type AS type ORDER BY p.name"
   },
   {
-    "id": "domains-list",
-    "label": "What domains exist?",
-    "category": "Domains",
-    "cypher": "MATCH (d:Domain) RETURN d.name AS domain ORDER BY d.name"
+    "id": "servers-by-network",
+    "label": "Servers grouped by network",
+    "category": "Infrastructure",
+    "cypher": "MATCH (s:Server)-[:IN_NETWORK]->(n:Network) RETURN n.name AS network, n.cidr AS cidr, collect(s.hostname) AS servers ORDER BY network"
+  },
+  {
+    "id": "databases-by-engine",
+    "label": "Databases grouped by engine",
+    "category": "Infrastructure",
+    "cypher": "MATCH (db:Database) RETURN db.engine AS engine, collect({name: db.name, environment: db.environment}) AS databases ORDER BY engine"
+  },
+  {
+    "id": "migration-waves-status",
+    "label": "Migration waves and their status",
+    "category": "Migration",
+    "cypher": "MATCH (w:MigrationWave) OPTIONAL MATCH (w)-[:IN_PROGRAM]->(p:MigrationProgram) RETURN p.name AS program, w.name AS wave, w.status AS status, w.start_date AS start_date, w.end_date AS end_date ORDER BY w.start_date"
+  },
+  {
+    "id": "apps-per-wave",
+    "label": "Applications in each migration wave",
+    "category": "Migration",
+    "cypher": "MATCH (a:Application)-[:PART_OF_WAVE]->(w:MigrationWave) RETURN w.name AS wave, w.status AS status, collect(a.name) AS applications ORDER BY wave"
+  },
+  {
+    "id": "target-platforms",
+    "label": "Target platforms for migration",
+    "category": "Migration",
+    "cypher": "MATCH (a:Application)-[:MIGRATING_TO]->(tp:TargetPlatform) RETURN tp.name AS target_platform, tp.provider AS provider, count(a) AS application_count ORDER BY application_count DESC"
   }
 ]

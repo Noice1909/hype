@@ -35,6 +35,10 @@ class DivaState(TypedDict):
     session_id: str
     user_message: str
     turn_number: int
+    # When set, the agent_executor skips the LLM tool-calling loop and
+    # runs this Cypher verbatim via the neo4j MCP server. UI "run this
+    # query" fast-path — router also short-circuits to neo4j.
+    cypher_override: str | None
 
     # -- Context (assembled by intake_node) --
     running_summary: str

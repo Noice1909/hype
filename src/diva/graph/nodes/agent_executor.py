@@ -86,6 +86,16 @@ async def _run_single_agent(agent_id: str, state: DivaState) -> AgentResult:
             sources=[],
         )
 
+    # Cypher fast-path: if the UI provided a pre-written Cypher query and
+    # this is the neo4j agent, skip the LLM tool-calling loop and run
+    # the query verbatim. The synthesizer will still produce natural
+    # language from the result.
+    cypher_override = state.get("cypher_override")
+    if cypher_override and agent_id == "neo4j":
+        return await _run_cypher_fast_path(
+            agent_id, config, cypher_override, start,
+        )
+
     # Get MCP tools for this agent (skip for agents with no MCP server like "diva")
     tools = []
     tool_calls_made = []
@@ -177,6 +187,66 @@ async def _run_single_agent(agent_id: str, state: DivaState) -> AgentResult:
         latency_ms=round(elapsed_ms, 1),
         sources=sources,
     )
+
+
+async def _run_cypher_fast_path(
+    agent_id: str,
+    config: Any,
+    cypher: str,
+    start: float,
+) -> AgentResult:
+    """Execute a user-provided Cypher query directly — no LLM, no ReAct loop.
+
+    Returns an AgentResult shaped exactly like a normal neo4j agent
+    response so the synthesizer produces the same natural-language markdown.
+    """
+    logger.info("Cypher fast-path: running query (%d chars)", len(cypher))
+
+    if not _mcp_manager.is_connected(config.mcp_server):
+        elapsed = (time.perf_counter() - start) * 1000
+        return AgentResult(
+            agent_id=agent_id,
+            status="error",
+            response_text=f"Neo4j MCP server '{config.mcp_server}' is not connected",
+            tool_calls_made=[],
+            tokens_used=0,
+            latency_ms=round(elapsed, 1),
+            sources=[],
+        )
+
+    try:
+        result = await _mcp_manager.call_tool(
+            config.mcp_server, "run_cypher", {"query": cypher},
+        )
+        result_text = _extract_tool_text(result)
+        status = "success"
+    except Exception as exc:
+        logger.exception("Cypher fast-path execution failed")
+        result_text = f"Error executing Cypher: {exc}"
+        status = "error"
+
+    elapsed_ms = (time.perf_counter() - start) * 1000
+    return AgentResult(
+        agent_id=agent_id,
+        status=status,
+        response_text=result_text,
+        tool_calls_made=[{
+            "tool": "run_cypher",
+            "args": {"query": cypher},
+            "result_preview": result_text[:200] if result_text else "",
+        }],
+        tokens_used=0,
+        latency_ms=round(elapsed_ms, 1),
+        sources=[f"{config.mcp_server}:run_cypher"],
+    )
+
+
+def _extract_tool_text(result: Any) -> str:
+    """Best-effort extraction of text content from an MCP tool result."""
+    if hasattr(result, "content"):
+        parts = [c.text for c in result.content if hasattr(c, "text")]
+        return "\n".join(parts) if parts else str(result.content)
+    return str(result)
 
 
 def _get_prior_agent_context(

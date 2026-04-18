@@ -51,3 +51,8 @@ dump/
 *.tmp
 *.temp
 node_modules/
+
+
+# agents
+.claude
+.agents

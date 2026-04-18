@@ -4,6 +4,7 @@ import { useEvalMap } from "./hooks/useEval";
 import ChatContainer from "./components/ChatContainer";
 import MessageInput from "./components/MessageInput";
 import ThemeToggle from "./components/ThemeToggle";
+import CatalogSidebar from "./components/CatalogSidebar";
 import { Trash2 } from "lucide-react";
 import "./App.css";
 
@@ -40,11 +41,21 @@ export default function App() {
     [messages, sendQuery]
   );
 
+  // When a catalog item is picked, we send both the natural-language
+  // label (shown in the chat bubble) AND the pre-written cypher
+  // (invisible to the user, triggers the backend fast-path).
+  const handleCatalogPick = useCallback(
+    (item) => {
+      sendQuery(item.label, { cypher: item.cypher });
+    },
+    [sendQuery]
+  );
+
   return (
-    <div className="app">
+    <div className="app app-with-sidebar">
       <header className="app-header">
         <div className="app-header-left">
-          <h1 className="app-title">Neo4j Agent</h1>
+          <h1 className="app-title">DIVA</h1>
         </div>
         <div className="app-header-right">
           {messages.length > 0 && (
@@ -61,25 +72,31 @@ export default function App() {
         </div>
       </header>
 
-      <main className="app-main">
-        <ChatContainer
-          messages={messages}
-          isStreaming={isStreaming}
-          onRetry={handleRetry}
-          onSuggestionSelect={sendQuery}
-          evalMap={evalMap}
-          evalLoadingSet={loadingSet}
-        />
-      </main>
+      <div className="app-body">
+        <CatalogSidebar onPick={handleCatalogPick} disabled={isStreaming} />
 
-      <footer className="app-footer">
-        <MessageInput
-          onSend={sendQuery}
-          onCancel={cancelStream}
-          isStreaming={isStreaming}
-        />
-        {error && <div className="global-error">{error}</div>}
-      </footer>
+        <div className="app-chat">
+          <main className="app-main">
+            <ChatContainer
+              messages={messages}
+              isStreaming={isStreaming}
+              onRetry={handleRetry}
+              onSuggestionSelect={sendQuery}
+              evalMap={evalMap}
+              evalLoadingSet={loadingSet}
+            />
+          </main>
+
+          <footer className="app-footer">
+            <MessageInput
+              onSend={sendQuery}
+              onCancel={cancelStream}
+              isStreaming={isStreaming}
+            />
+            {error && <div className="global-error">{error}</div>}
+          </footer>
+        </div>
+      </div>
     </div>
   );
 }

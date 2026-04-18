@@ -20,8 +20,12 @@ export function useSSE() {
   // Track conversation ID for multi-turn context
   const conversationIdRef = useRef(null);
 
-  const sendQuery = useCallback(async (query, apiKey = "") => {
+  const sendQuery = useCallback(async (query, opts = {}) => {
     if (!query.trim() || isStreaming) return;
+    // Support both sendQuery(query, apiKey) and sendQuery(query, { apiKey, cypher })
+    // for backwards compat with existing callers.
+    const apiKey = typeof opts === "string" ? opts : opts.apiKey || "";
+    const cypher = typeof opts === "string" ? null : opts.cypher || null;
 
     // Add user message
     const userMsg = { role: "user", content: query, id: Date.now() };
@@ -63,11 +67,17 @@ export function useSSE() {
     };
 
     try {
-      const stream = fetchSSE(
-        API_URL,
-        { query, stream: true, conversation_id: conversationIdRef.current },
-        { headers, signal: controller.signal }
-      );
+      const requestBody = {
+        query,
+        stream: true,
+        conversation_id: conversationIdRef.current,
+      };
+      if (cypher) requestBody.cypher = cypher;
+
+      const stream = fetchSSE(API_URL, requestBody, {
+        headers,
+        signal: controller.signal,
+      });
 
       for await (const { event, data } of stream) {
         if (controller.signal.aborted) break;

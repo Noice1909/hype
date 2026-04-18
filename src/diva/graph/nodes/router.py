@@ -62,15 +62,29 @@ def configure_router(registry: AgentRegistry) -> None:
 
 
 async def router_node(state: DivaState) -> dict:
-    """Classify user intent and decide which agents to dispatch."""
-    routing_decision = await _classify_intent(state)
+    """Classify user intent and decide which agents to dispatch.
 
-    logger.info(
-        "Router decision: agents=%s, mode=%s, reasoning=%s",
-        routing_decision["agents"],
-        routing_decision["execution_mode"],
-        routing_decision["reasoning"],
-    )
+    Fast-path: when ``cypher_override`` is set in state (UI sent a pre-
+    written Cypher), skip the LLM classification and route directly to
+    neo4j. The agent_executor sees ``cypher_override`` and runs the
+    query verbatim instead of the ReAct loop.
+    """
+    if state.get("cypher_override"):
+        routing_decision = RoutingDecision(
+            agents=["neo4j"],
+            execution_mode="parallel",
+            reasoning="cypher fast-path: running user-provided query verbatim",
+            sequential_plan=None,
+        )
+        logger.info("Router: cypher fast-path — routing to neo4j")
+    else:
+        routing_decision = await _classify_intent(state)
+        logger.info(
+            "Router decision: agents=%s, mode=%s, reasoning=%s",
+            routing_decision["agents"],
+            routing_decision["execution_mode"],
+            routing_decision["reasoning"],
+        )
 
     return {
         "routing_decision": routing_decision,

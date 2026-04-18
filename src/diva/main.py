@@ -18,6 +18,7 @@ from diva.graph.builder import build_graph
 from diva.graph.nodes.agent_executor import configure_executor
 from diva.graph.nodes.intake import configure_intake
 from diva.graph.nodes.router import configure_router
+from diva.graph.nodes.synthesizer import configure_synthesizer
 from diva.llm.provider import get_llm
 from diva.logging_config import setup_logging
 from diva.mcp.client import MCPClientManager
@@ -66,8 +67,9 @@ async def lifespan(app: FastAPI):  # noqa: ARG001 — required by FastAPI lifesp
     # 4. Configure context pipeline for intake node
     configure_intake(os.path.join(settings.diva_config_dir, "context.yaml"))
 
-    # 5. Configure router with registry
+    # 5. Configure router + synthesizer with registry (both need agent descriptions)
     configure_router(registry)
+    configure_synthesizer(registry)
 
     # 6. Configure agent executor with dependencies
     configure_executor(

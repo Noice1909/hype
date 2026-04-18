@@ -29,6 +29,7 @@ def _build_initial_state(body: QueryRequest, conversation_id: str) -> dict:
         "session_id": conversation_id,
         "user_message": body.query,
         "turn_number": 0,
+        "cypher_override": body.cypher,
         "running_summary": "",
         "entity_scratchpad": [],
         "sliding_window": [],
@@ -67,8 +68,35 @@ def _extract_cypher_queries(result: dict) -> list[str]:
     return queries
 
 
-def _build_suggestions(follow_ups: list[str]) -> list[dict[str, str]]:
-    return [{"text": fu} for fu in follow_ups]
+def _normalize_suggestion_entry(fu) -> dict[str, str] | None:
+    """Convert a single follow-up (str or dict) into the API shape."""
+    if isinstance(fu, str):
+        text = fu.strip()
+        return {"text": text} if text else None
+    if not isinstance(fu, dict):
+        return None
+    text = str(fu.get("text") or "").strip()
+    if not text:
+        return None
+    entry: dict[str, str] = {"text": text}
+    if fu.get("type"):
+        entry["type"] = fu["type"]
+    if fu.get("agent"):
+        entry["agent"] = fu["agent"]
+    return entry
+
+
+def _build_suggestions(follow_ups: list) -> list[dict[str, str]]:
+    """Normalize follow-ups to the API response shape.
+
+    Accepts both legacy strings and structured dicts with {text, type, agent}.
+    """
+    out: list[dict[str, str]] = []
+    for fu in follow_ups or []:
+        entry = _normalize_suggestion_entry(fu)
+        if entry is not None:
+            out.append(entry)
+    return out
 
 
 def _extract_events(result: dict) -> list[dict]:

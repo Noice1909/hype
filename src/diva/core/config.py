@@ -104,7 +104,7 @@ class Settings(BaseSettings):
     do_not_track: str = Field(default="1")
     confident_ai_opt_out: str = Field(default="YES")
     deepeval_results_folder: str = Field(default="/tmp/deepeval")
-    deepeval_file_system: str = Field(default="DISABLED")
+    deepeval_file_system: str = Field(default="READ_ONLY")
 
     # ── Helpers ─────────────────────────────────────────────────────────────
 

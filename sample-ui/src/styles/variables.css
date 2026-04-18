@@ -31,6 +31,19 @@
   --radius-md: 8px;
   --radius-lg: 12px;
   --radius-xl: 16px;
+
+  /* ── Motion tokens (Emil Kowalski animation system) ─────────────────── */
+  /* Custom cubic-bezier curves — more polished than built-in ease */
+  --ease-out: cubic-bezier(0.32, 0.72, 0, 1);         /* default for enter/exit */
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);       /* on-screen movement */
+  --ease-snap: cubic-bezier(0.22, 1, 0.36, 1);         /* punchy micro-interactions */
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);       /* iOS-style drawer */
+
+  /* Durations — all under 300ms for UI feel responsive */
+  --dur-instant: 120ms;   /* press, hover micro-interactions */
+  --dur-fast: 180ms;      /* buttons, chips */
+  --dur-base: 220ms;      /* message bubbles, fades */
+  --dur-slow: 300ms;      /* larger surfaces (sidebar, panel) */
 }
 
 /* ── Dark theme ────────────────────────────────────────────────────── */
